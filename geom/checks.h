@@ -1,0 +1,15 @@
+#ifndef	__GL_CHECKS__
+#define	__GL_CHECKS__
+
+#include	<string.h>
+
+// get current OpenGL error desc or NULL if no error
+const char * getGlErrorString ();
+
+// get bound framebuffer error or NULL if no error
+const char * checkFramebuffer ();
+
+// check for error and print if any
+void checkGlError ( const char * title );
+
+#endif

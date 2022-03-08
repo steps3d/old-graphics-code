@@ -1,0 +1,67 @@
+#
+# Makefile to build StepsFramework for  M$ Window
+#
+# Author: Alex V. Boreskoff, <steps3d@narod.ru>, <steps3d@gmail.com>
+#
+
+!include <win32.mak>
+
+STATIC = 1
+
+!if defined (DEBUG)
+OUTDIR = Debug
+DEBUG_COMPILE_FLAGS = /Zi /MT
+DEBUG_LINK_FLAGS    = /DEBUG /DEBUGTYPE:CV /NODEFAULTLIB:libc.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcprt.lib /NODEFAULTLIB:libcmtd.lib libcmt.lib 
+!else
+OUTDIR = Release
+DEBUG_COMPILE_FLAGS = /MT
+DEBUG_LINK_FLAGS    = /NODEFAULTLIB:libc.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcprt.lib libcmt.lib 
+
+!endif
+
+CC              = cl
+LINK            = link
+LIB             = lib
+OPENGL          = opengl32.lib freeglut_static.lib
+
+MY_LIBS  = f:/Libraries
+FREEGLUT = $(MY_LIBS)/freeglut
+GLEW     = $(MY_LIBS)/glew-1.10.0
+INC = $(INC) -I$(FREEGLUT) -Iinclude -Icontrib -I$(GLEW)/include -Ilibs
+
+!if defined (STATIC)
+LLDLIBS  = $(LFLAGS) $(DEBUG_LINK_FLAGS) $(OPENGL) glew32s.lib /LIBPATH:$(FREEGLUT)/lib/win32-vc2008 /LIBPATH:$(GLEW)/lib /LIBPATH:libs zlib.lib libpng.lib libjpeg.lib
+CFLAGS   = $(CFLAGS) /EHsc $(DEBUG_COMPILE_FLAGS) -DWIN32 -D_CRT_SECURE_NO_DEPRECATE -DFREEGLUT_STATIC -DGLEW_STATIC
+!else
+LLDLIBS  = $(LFLAGS) $(DEBUG_LINK_FLAGS) $(OPENGL) glew32.lib /LIBPATH:$(FREEGLUT)/lib/win32-vc2008 /LIBPATH:$(GLEW)/lib /LIBPATH:libs zlib.lib libpng.lib libjpeg.lib
+CFLAGS   = $(CFLAGS) /EHsc $(DEBUG_COMPILE_FLAGS) -DWIN32 -D_CRT_SECURE_NO_DEPRECATE -DFREEGLUT_STATIC
+!endif
+
+CFLAGS = $(CFLAGS) /Fo"$(OUTDIR)\\"
+
+MATH = $(OUTDIR)\vec2.obj $(OUTDIR)\vec3.obj $(OUTDIR)\vec4.obj $(OUTDIR)\mat2.obj $(OUTDIR)\mat3.obj $(OUTDIR)\mat4.obj $(OUTDIR)\quat.obj $(OUTDIR)\plane.obj $(OUTDIR)\bbox.obj $(OUTDIR)\randUtils.obj $(OUTDIR)\eig3.obj $(OUTDIR)\kdop.obj $(OUTDIR)\noise.obj
+TEXT = $(OUTDIR)\Texture.obj $(OUTDIR)\TexImage.obj $(OUTDIR)\TgaEncoder.obj $(OUTDIR)\TgaDecoder.obj $(OUTDIR)\DdsDecoder.obj $(OUTDIR)\BmpDecoder.obj $(OUTDIR)\JpegDecoder.obj $(OUTDIR)\PngDecoder.obj $(OUTDIR)\Resources.obj $(OUTDIR)\FileSystem.obj $(OUTDIR)\ZipFileSystem.obj $(OUTDIR)\TexFormat.obj
+WRAP = $(OUTDIR)\Data.obj $(OUTDIR)\Program.obj $(OUTDIR)\VertexBuffer.obj $(OUTDIR)\Framebuffer.obj $(OUTDIR)\stringUtils.obj $(OUTDIR)\glUtilities.obj  $(OUTDIR)\UbAccessor.obj $(OUTDIR)\Sampler.obj $(OUTDIR)\half.obj $(OUTDIR)\ScreenQuad.obj $(OUTDIR)\Sync.obj $(OUTDIR)\Query.obj $(OUTDIR)\TransformFeedback4.obj $(OUTDIR)\Log.obj $(OUTDIR)\Pipeline.obj $(OUTDIR)\BasicMesh.obj $(OUTDIR)\GlutWindow.obj
+
+all: $(OUTDIR) steps3d.lib
+
+steps3d.lib: $(MATH) $(WRAP) $(TEXT)
+	$(LIB) $**  /OUT:$(OUTDIR)\steps3d.lib
+
+
+clean:
+	@del /F /S /Q $(OUTDIR) 2> nul
+	@del *.pdb 2> nul
+
+$(OUTDIR):
+	if not exist $(OUTDIR) mkdir $(OUTDIR)
+
+{src}.cpp{$(OUTDIR)}.obj::
+	$(CC) $(CFLAGS) $(INC) /c $<
+
+{src}.c{$(OUTDIR)}.obj::
+	$(CC) $(CFLAGS) $(INC) /c $<
+
+{contrib\eig3x3}.cpp{$(OUTDIR)}.obj::
+	$(CC) $(CFLAGS) $(INC) /c $<
+

@@ -1,0 +1,57 @@
+#
+# Makefile to build OpenGL 3.3/4.1 examples for M$ Window
+#
+# Author: Alex V. Boreskoff, <steps3d@narod.ru>
+#
+
+!include <win32.mak>
+
+DEBUG = 1
+STATIC = 1
+
+!if defined (DEBUG)
+DEBUG_COMPILE_FLAGS = /Zi /MT
+DEBUG_LINK_FLAGS    = /DEBUG /DEBUGTYPE:CV /NODEFAULTLIB:libc.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcprt.lib /NODEFAULTLIB:libcmtd.lib libcmt.lib 
+!else
+DEBUG_COMPILE_FLAGS = /MT
+DEBUG_LINK_FLAGS    = /NODEFAULTLIB:libc.lib /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcprt.lib libcmt.lib 
+
+!endif
+
+CC              = cl
+LINK            = link
+OPENGL          = opengl32.lib freeglut_static.lib
+
+MY_LIBS  = f:/Libraries
+FREEGLUT = $(MY_LIBS)/freeglut
+GLEW     = $(MY_LIBS)/glew-1.10.0
+INC = $(INC) -I$(FREEGLUT) -I$(GLEW)/include -Ilibs -I../include -I.
+
+!if defined (STATIC)
+LLDLIBS  = $(LFLAGS) $(DEBUG_LINK_FLAGS) $(OPENGL) glew32s.lib /LIBPATH:$(FREEGLUT)/lib/win32-vc2008 /LIBPATH:$(GLEW)/lib/Release/Win32 steps3d.lib /LIBPATH:../Debug /LIBPATH:../libs zlib.lib libpng.lib libjpeg.lib
+CFLAGS   = $(CFLAGS) /EHsc $(DEBUG_COMPILE_FLAGS) -DWIN32 -D_CRT_SECURE_NO_DEPRECATE -DFREEGLUT_STATIC -DGLEW_STATIC
+!else
+LLDLIBS  = $(LFLAGS) $(DEBUG_LINK_FLAGS) $(OPENGL) glew32.lib /LIBPATH:$(FREEGLUT)/lib/win32-vc2008 /LIBPATH:$(GLEW)/lib/Release/Win32 /LIBPATH:libs zlib.lib libpng.lib libjpeg.lib
+CFLAGS   = $(CFLAGS) /EHsc $(DEBUG_COMPILE_FLAGS) -DWIN32 -D_CRT_SECURE_NO_DEPRECATE -DFREEGLUT_STATIC
+!endif
+
+EXES = atomic-counters.exe
+
+all: $(EXES)
+
+atomic-counters.exe: atomic-counters.obj version.res
+	$(link) $** $(LLDLIBS)
+
+clean:
+	@del $(EXES) $(OBJS) version.res *.obj *.ilk *.pdb 2> nul
+
+
+.cpp.obj:
+	$(CC) $(CFLAGS) $(INC) /c $<
+
+.c.obj:
+	$(CC) $(CFLAGS) $(INC) /c $<
+
+
+version.res : version.rc
+	$(RC) $(RCFLAGS) /r /fo"version.res" version.rc
